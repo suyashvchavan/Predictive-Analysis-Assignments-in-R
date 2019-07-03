@@ -1,0 +1,334 @@
+---
+title: "Assignment-5"
+author: "Suyashkumar Chavan(228001537)"
+date: "11/5/2018"
+output:
+  pdf_document: default
+  word_document: default
+---
+
+#Problem-1:In this question, we will predict the number of applications received (Apps) using the other variables in the College data set (ISLR package).
+
+##(a) Perform best subset selection to the data. What is the best model obtained according to Cp, BIC and adjusted R2? Show some plots to provide evidence for your answer, and report the coefficients of the best model.
+
+Ans:
+```{r}
+library(ISLR)
+library(leaps)
+data(College)
+set.seed(1)
+names(College)
+regfit <- regsubsets( Apps ~ .,data = College,nvmax=17)
+summary1 <-summary(regfit)
+par(mfrow=c(1,3))
+plot(summary1$cp,xlab="number of variables",ylab="C_p")
+points(which.min(summary1$cp),summary1$cp[which.min(summary1$cp)],col="red",cex=2,pch=10)
+plot(summary1$bic,xlab="number of variables",ylab="BIC")
+points(which.min(summary1$bic),summary1$bic[which.min(summary1$bic)],col="red",cex=2,pch=10)
+plot(summary1$adjr2,xlab="number of variables",ylab="Adjusted R^2")
+points(which.max(summary1$adjr2),summary1$adjr2[which.max(summary1$adjr2)],col="red",cex=2,pch=10)
+
+
+```
+
+Cp chooses model with 12 predictors, BIc chooses model with 10 predictors, Adjusted R^2 chooses model with 13 predictors. In general, the best model is the one with less number of predictors, in this case it is with 10 predictors which is chosen by BIC.
+
+coeficients of best chosen model:
+```{r}
+coef(regfit,which.min(summary1$bic))
+```
+
+##(b) Repeat (a) using forward stepwise selection and backwards stepwise selection. How does your answer compare to the results in (a)?
+Ans:
+Forward selection:
+
+```{r}
+forwardsel <-regsubsets( Apps ~ .,data = College,nvmax=17,method="forward")
+summary2 <- summary(forwardsel)
+par(mfrow=c(1,3))
+plot(summary2$cp,xlab="number of variables",ylab="C_p")
+points(which.min(summary2$cp),summary2$cp[which.min(summary2$cp)],col="red",cex=2,pch=10)
+plot(summary2$bic,xlab="number of variables",ylab="BIC")
+points(which.min(summary2$bic),summary2$bic[which.min(summary2$bic)],col="red",cex=2,pch=10)
+plot(summary2$adjr2,xlab="number of variables",ylab="Adjusted R^2")
+points(which.max(summary2$adjr2),summary2$adjr2[which.max(summary2$adjr2)],col="red",cex=2,pch=10)
+
+```
+Here also in forward selection method,Cp chooses model with 12 predictors, BIc chooses model with 10 predictors, Adjusted R^2 chooses model with 13 predictors. In general, the best model is the one with less number of predictors, in this case it is with 10 predictors which is chosen by BIC.
+
+coeficients of best chosen model:
+```{r}
+coef(forwardsel,which.min(summary2$bic))
+```
+
+Backward Selection:
+
+```{r}
+backwardsel <-regsubsets( Apps ~ .,data = College,nvmax=17,method="backward")
+summary3 <- summary(backwardsel)
+par(mfrow=c(1,3))
+plot(summary3$cp,xlab="number of variables",ylab="C_p")
+points(which.min(summary3$cp),summary3$cp[which.min(summary3$cp)],col="red",cex=2,pch=10)
+plot(summary3$bic,xlab="number of variables",ylab="BIC")
+points(which.min(summary3$bic),summary3$bic[which.min(summary3$bic)],col="red",cex=2,pch=10)
+plot(summary3$adjr2,xlab="number of variables",ylab="Adjusted R^2")
+points(which.max(summary3$adjr2),summary3$adjr2[which.max(summary3$adjr2)],col="red",cex=2,pch=10)
+```
+
+Here also in backward selection method,Cp chooses model with 12 predictors, BIc chooses model with 10 predictors, Adjusted R^2 chooses model with 13 predictors. In general, the best model is the one with less number of predictors, in this case it is with 10 predictors which is chosen by BIC.
+
+coeficients of best chosen model:
+```{r}
+coef(backwardsel,which.min(summary3$bic))
+```
+
+After comparing the results from forward selection and backward selection, both models are exactly identical to the model cosen by the best subset selection method.
+
+##(c) Fit a lasso model on the data. Use cross-validation to select the optimal value of Lambda. Create plots of the cross-validation error as a function of Lambda. Report the resulting coefficient estimates.
+
+Ans:
+```{r}
+library(glmnet)
+data(College)
+set.seed(1)
+matrix1<- model.matrix(College$Apps ~ .,data=College)
+cross <- cv.glmnet(matrix1,College$Apps,alpha=1)
+plot(cross)
+```
+
+```{r}
+optimallambda <- cross$lambda.min
+optimallambda
+```
+Optimal value of lambda is 3.403063.
+
+```{r}
+lasso1 <- glmnet(matrix1,College$Apps,alpha=1)
+predict(lasso1,s=optimallambda,type="coefficients")
+```
+
+##(d) Fit a ridge regression model on the data. Use cross-validation to select the optimal value of lambda. Create plots of the cross-validation error as a function of lambda. Report the resulting coefficient estimates.
+
+```{r}
+library(glmnet)
+data(College)
+set.seed(1)
+matrix2<- model.matrix(College$Apps ~ .,data=College)
+grid <- 10^seq(4,-2,length=50)
+cross1 <- cv.glmnet(matrix2,College$Apps,alpha=0,lambda=grid)
+plot(cross1)
+```
+
+```{r}
+
+optimallambda2 <- cross1$lambda.min
+optimallambda2
+
+```
+optimal lambda is 0.01
+```{r}
+ridgeco <- glmnet(matrix1,College$Apps,alpha=0)
+predict(ridgeco,s=optimallambda,type="coefficients")
+```
+##(e) Now split the data set into a training set and a test set.
+##i. Fit the best models obtained in the best subset selection (according to Cp, BIC or adjusted
+##R2) to the training set, and report the test error obtained.
+
+
+```{r}
+set.seed(1)
+x <-model.matrix(Apps~.,College)[,-1]
+y<- College$Apps
+training<-sample(1:nrow(x),nrow(x)/2)
+testing<-(-training)
+y.testing<-y[testing]
+x.training<-x[training,]
+x.testing<-x[testing,]
+y.training<-y[training]
+data.training<-data.frame(y=y.training,x=x.training)
+data.testing<-data.frame(y=y.testing,x=x.testing)
+reg<-regsubsets(y~.,data=data.training,nvmax = 17)
+test.mat<-model.matrix(y~.,data = data.testing,nvmax=17)
+errors<-rep(NA,3)
+coeff<-coef(reg,id=10)
+prediction<-test.mat[,names(coeff)]%*%coeff
+errors[1]<-mean((prediction-y.testing)^2)
+coeff<-coef(reg,id=12)
+prediction<-test.mat[,names(coeff)]%*%coeff
+errors[2]<-mean((prediction-y.testing)^2)
+coefff<-coef(reg,id=13)
+prediction<-test.mat[,names(coeff)]%*%coeff
+errors[3]<-mean((prediction-y.testing)^2)
+errors
+```
+##ii. Fit a lasso model to the training set, with lambda chosen by cross validation. Report the test
+##error obtained.
+```{r}
+set.seed(1)
+training <-sample(1:nrow(x),nrow(x)/2)
+testing<-(-training)
+y.testing<-y[testing]
+lasso <-glmnet(x[training,],y[training],alpha=1,lambda=optimallambda)
+prd <- predict(lasso,s=optimallambda,newx=x[testing,])
+mean((prd-y.testing)^2)
+```
+###iii. Fit a ridge regression model to the training set, with lambda chosen by cross validation. Report the test error obtained.
+```{r}
+set.seed(1)
+training <-sample(1:nrow(x),nrow(x)/2)
+testing<-(-training)
+y.testing<-y[testing]
+ridge <-glmnet(x[training,],y[training],alpha=0,lambda=optimallambda2)
+prd <- predict(ridge,s=optimallambda,newx=x[testing,])
+mean((prd-y.testing)^2)
+```
+##iv. Compare the test errors obtained in the above analysis (i-iii) and determine the optimal model.
+Ans:
+comparing above three models best model is best subset selection model according to Cp.
+
+
+#Question2:In the lab, a classification tree was applied to the Carseats data set after converting Sales into a binary response variable. This question will seek to predict Sales using regression trees and related approaches, treating the response as a quantitative variable (that is, without the conversion).
+
+##(a) Split the data set into a training set and a test set.
+```{r}
+library(ISLR)
+library(MASS)
+library(tree)
+attach(Carseats)
+training2 <- sample(1:nrow(Carseats),nrow(Carseats)/2)
+```
+
+##(b) Fit a regression tree to the training set. Plot the tree, and interpret the results. Then compute the test MSE.
+ans:
+```{r}
+names(Carseats)
+tree1 <- tree(Carseats$Sales~.,data=Carseats,subset=training2)
+summary(tree1)
+```
+plot
+```{r}
+plot(tree1)
+text(tree1,pretty = 0)
+```
+MSE
+```{r}
+
+predict1 <- predict(tree1, newdata=Carseats[-training2,])
+test2<- Carseats$Sales[-training2]
+plot(predict1,test2)
+abline(0,1)
+mean((predict1-test2)^2)
+```
+
+so the test mse is 4.678541.
+
+##(c) Prune the tree obtained in (b). Use cross validation to determine the optimal level of tree complexity. Plot the pruned tree and interpret the results. Compute the test MSE of the pruned tree. Does pruning improve the test error?
+
+Ans:
+```{r}
+
+cv2<- cv.tree(tree1)
+plot(cv2$size,cv2$dev,type='b')
+
+
+
+```
+From above diagram, cross validation select tree of size 6,now  prune the tree to size of 6-node.
+```{r}
+Prune <- prune.tree(tree1,best=6)
+plot(Prune)
+text(Prune,pretty=2)
+```
+```{r}
+predict2 <- predict(Prune, newdata=Carseats[-training2,])
+mean((predict2-test2)^2)
+```
+
+The test mse is 5.15171, after prunning the test MSE has increased.
+
+##(d) Use the bagging approach to analyze the data. What test MSE do you obtain? Determine which variables are most important.
+```{r}
+library(randomForest)
+
+bag1 <- randomForest(Carseats$Sales~.,data=Carseats,subset=training2,mtry=10,importance=TRUE)
+bag1
+
+```
+test mse
+```{r}
+predict3 <- predict(bag1,newdata=Carseats[-training2,])
+plot(predict3,test2)
+abline(0,1)
+mean((predict3-test2)^2)
+
+```
+The test MSE after bagging is 3.045224, bagging decreased the test MSE.
+```{r}
+importance(bag1)
+```
+important variables are price and shelveloc.
+
+##(e) Use random forests to analyze the data. What test MSE do you obtain? Determine which variables are most important.
+ANS:
+
+```{r}
+set.seed(2)
+random <- randomForest(Carseats$Sales~.,data=Carseats,sebset=training2,mtry=3,importance=TRUE)
+predict4<- predict(random,newdata=Carseats[-training2,])
+mean((predict4-test2)^2)
+```
+this test MSE is 0.5926679
+
+```{r}
+importance(random)
+```
+important variables are price and shelveloc.
+
+#Problem 3
+#In the lab, we applied random forests to the Boston data using mtry=6 and ntree=100.
+
+##(a) Consider a more comprehensive range of values for mtry: 1, 2,...,13. Given each value of mtry, find the test error resulting from random forests on the Boston data (using ntree=100). Create a plot displaying the test error rate vs. the value of mtry. Comment on the results in the plot.
+```{r}
+library(MASS)
+set.seed(7)
+training4 <- sample(1:nrow(Boston),nrow(Boston)/2)
+test4<- Boston[-training4,"medv"]
+
+mtry <-c(1:13)
+er <-rep(NA,13)
+for (i in 1:13){
+  random2 <-randomForest(medv~.,data=Boston,subset=training4, mtry=i,ntree=100)
+  predict5 <-predict(random2,newdata=Boston[-training4, ])
+  er[i] <-mean ((predict5-test4)^2)
+  
+}
+er
+```
+```{r}
+plot(mtry,er,ylab="error")
+```
+
+Ans: from the plot it can be seen that, error first decreases and then again starts to increase,
+the lowest error is at mtry=10.
+
+##(b) Similarly, consider a range of values for ntree (between 5 to 200). Given each value of ntree, find the test error resulting from random forests (using mtry=6). Create a plot displaying the test error vs. the value of ntree. Comment on the results in the plot.
+```{r}
+library(MASS)
+set.seed(7)
+training5 <- sample(1:nrow(Boston),nrow(Boston)/2)
+test5<- Boston[-training5,"medv"]
+er2 <-rep(NA,196)
+ntree <- c(1:200)
+for (i in 5:200){
+  random3 <-randomForest(medv~.,data=Boston,subset=training5, mtry=6,ntree=i)
+  predict6 <-predict(random3,newdata=Boston[-training5, ])
+  er2[i] <-mean ((predict6-test5)^2)
+  
+}
+er2
+```
+```{r}
+plot(ntree,er2, ylab = "error")
+```
+
+the error decreases exponentially inialy and after that it becomes constant and stays is 11.5 to 10.

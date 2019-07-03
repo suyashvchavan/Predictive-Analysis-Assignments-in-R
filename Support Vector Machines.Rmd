@@ -1,0 +1,214 @@
+---
+title: "Assignment 6"
+author: "Suyashkumar Chavan(228001537)"
+date: "11/30/2018"
+output: pdf_document
+---
+
+#Question1:In this problem, you will use support vector approaches to predict whether a given car gets high or low gas mileage based on the Auto data set in the ISLR package.
+##(a) Create a binary variable that takes on a 1 for cars with gas mileage above the median, and a 0 for cars with gas mileage below the median. Use this variable as response in the following analysis.
+Ans:
+```{r}
+library(ISLR)
+assign <- ifelse(Auto$mpg>median(Auto$mpg),1,0)
+MPG<- as.factor(assign)
+Auto$MPGlevel <- MPG
+head(Auto,20)
+
+```
+
+##(b) Fit a support vector classifier to the data with various values of cost, to predict whether a car gets high or low gas mileage. Report the cross-validation errors associated with different values of this parameter. Comment on your results.
+Ans:
+```{r}
+set.seed(1)
+library(e1071)
+assign2<- tune(svm,MPGlevel~.,data=Auto, kernel="linear",ranges=list(cost=c(1,2,5,10,15,20,35,50)))
+summary(assign2)
+```
+
+Best cost parameter is 1, with lowest error rate. As Cost paramenter increses error rate increases.Which is as expected.
+
+##(c) Now repeat (b), this time using SVMs with radial and polynomial kernels, with different values of gamma, degree and cost. Comment on your results.
+
+Polynomial Kernel
+```{r}
+set.seed(1)
+assign3<- tune(svm,MPGlevel~.,data=Auto, kernel="polynomial",ranges=list(cost=c(1,3,5,10,17,25,33,55),degree=c(2,3,4,5)))
+summary(assign3)
+```
+The lowest cross-validation error corresponds to cost 55 and degree 2.
+
+Radial Kernel
+```{r}
+set.seed(4)
+assign3<- tune(svm,MPGlevel~.,data=Auto,kernel="radial",ranges=list(cost=c(1,3,5,10,17,25,33,55),
+gamma=c(0.1,0.01,1,3,5,8,10,50)))
+summary(assign3)
+```
+The lowest cross-validation error corresponds to cost 17 and gamma 0.01.
+
+
+#Question2:This problem uses the OJ data set in the ISLR package.
+#(a) Create a training set containing a random sample of 800 observations, and a test set containing
+##the remaining observations.
+Ans:
+```{r}
+set.seed(1)
+training <- sample(nrow(OJ),800)
+trainingset <- OJ[training,]
+testingset <- OJ[-training,]
+```
+
+##(b) Fit a support vector classifier to the training data using cost=0.01, with Purchase as the response and the other variables as predictors. Use the summary() function to produce summary statistics, and describe the results obtained.
+Ans:
+```{r}
+svc <- svm(Purchase~.,data=trainingset,kernel="linear",cost=0.01)
+summary(svc)
+```
+
+The support vector classifier has 432 support vectors. Out of these 432, 215 are of CH and 217 are of MM level.
+
+##(c) What are the training and test error rates?
+Ans:
+```{r}
+trainingprediction<- predict(svc,trainingset)
+Table1<-table(trainingset$Purchase,trainingprediction)
+Table1
+```
+
+```{r}
+accuracy <- ((Table1["CH","CH"]+Table1["MM","MM"])/nrow(trainingset))
+error_rate <- 1-accuracy
+error_rate
+```
+Training error rate is 16.625%.
+
+```{r}
+testprediction<- predict(svc,testingset)
+Table2<-table(testingset$Purchase,testprediction)
+Table2
+```
+```{r}
+accuracy1 <- ((Table2["CH","CH"]+Table2["MM","MM"])/nrow(testingset))
+error_rate1 <- 1-accuracy1
+error_rate1
+```
+test error rate is 18.14815%.
+
+##(d) Use the tune() function to select an optimal cost. Consider value in the range 0.01 to 10.
+Ans:
+```{r}
+set.seed(1)
+Tune<- tune(svm,Purchase~., data=trainingset,kernel="linear",ranges=list(cost=10^seq(-2,1,by=0.1)))
+summary(Tune)
+```
+The optimal cost is 0.01995262.
+
+##(e) Compute the training and test error rates using this new value for cost.
+```{r}
+svc2<- svm(Purchase~., kernel="linear",data=trainingset,cost=Tune$best.performance)
+trainingprediction2<-predict(svc2,trainingset)
+table3<- table(trainingset$Purchase,trainingprediction2)
+table3
+```
+
+```{r}
+accuracy3 <- ((table3["CH","CH"]+table3["MM","MM"])/nrow(trainingset))
+error_rate3 <- 1-accuracy3
+error_rate3
+```
+training error rate is 16%.
+
+```{r}
+testingprediction2<-predict(svc2,testingset)
+table4<- table(testingset$Purchase,testingprediction2)
+table4
+```
+
+```{r}
+accuracy4 <- ((table4["CH","CH"]+table4["MM","MM"])/nrow(testingset))
+error_rate4 <- 1-accuracy4
+error_rate4
+```
+Testing error rate is 18.51852%.
+
+##(f) Repeat parts (b) through (e) using a support vector machine with a radial kernel. Use the tune() function to select an optimal cost and gamma.
+Ans:
+```{r}
+set.seed(1)
+assign4<- tune(svm,Purchase~.,data=trainingset,kernel='radial',ranges=list(cost=c(1:20),gamma=c(0.001,0.01,0.1,0.2,0.5,1,2,5,10,15)))
+summary(assign4)
+
+```
+optimal cost is 9 and gamma is 0.001.
+```{r}
+radial2<- svm(Purchase~.,data=trainingset,kernel="radial",cost=9,gamma=0.001)
+summary(radial2)
+```
+
+```{r}
+trainingprediction3<- predict(radial2,trainingset)
+Table5<-table(trainingset$Purchase,trainingprediction3)
+Table5
+```
+```{r}
+accuracy5 <- ((Table5["CH","CH"]+Table5["MM","MM"])/nrow(trainingset))
+error_rate5 <- 1-accuracy5
+error_rate5
+```
+Training error rate is 16.125%
+
+```{r}
+testingprediction6<- predict(radial2,testingset)
+Table6<-table(testingset$Purchase,testingprediction6)
+Table6
+```
+
+```{r}
+accuracy6 <- ((Table6["CH","CH"]+Table6["MM","MM"])/nrow(testingset))
+error_rate6 <- 1-accuracy6
+error_rate6
+```
+Testing error is 18.19%.
+
+##(g) Repeat parts (b) through (e) using a support vector machine with a polynomial kernel. Set degree=2. Use the tune() function to select an optimal cost.
+Ans:
+```{r}
+set.seed(1)
+polynom<- tune(svm,Purchase~.,data=OJ, kernel="polynomial",ranges=list(cost=seq(2,50,1)),degree=2)
+summary(polynom)
+```
+optimal cost is 23.
+```{r}
+polynom2<- svm(Purchase~.,data=trainingset,kernel="polynomial",cost=23,degree=2)
+summary(polynom2)
+```
+```{r}
+trainingprediction4<- predict(polynom2,trainingset)
+Table7<-table(trainingset$Purchase,trainingprediction4)
+Table7
+```
+
+```{r}
+accuracy7 <- ((Table7["CH","CH"]+Table7["MM","MM"])/nrow(trainingset))
+error_rate7 <- 1-accuracy7
+error_rate7
+```
+training error is 13.75%.
+
+```{r}
+testingprediction8<- predict(polynom2,testingset)
+Table8<-table(testingset$Purchase,testingprediction8)
+Table8
+```
+
+```{r}
+accuracy8 <- ((Table8["CH","CH"]+Table8["MM","MM"])/nrow(testingset))
+error_rate8 <- 1-accuracy8
+error_rate8
+```
+
+testing error is 18.14%.
+
+##(h) Overall, which approach seems to give the best results on this data?
+Ans:overall all the approach have nearly same test error, polynomial error gives minimum test error of 18.14%.Linear model has advantage of being simpler.

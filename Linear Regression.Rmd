@@ -1,0 +1,325 @@
+---
+title: "Assisgnment 2"
+author: "Suyashkumar Chavan(228001537)"
+date: "10/5/2018"
+output:
+  word_document: default
+  pdf_document: default
+---
+```{r}
+
+```
+
+#Problem 1
+Assignment #2: Linear Regression
+Use the Auto data set to answer the following questions:
+##(a) Perform a simple linear regression with mpg as the response and horsepower as the predictor.
+```{r}
+library(ISLR)
+data(Auto)
+Relation <- lm(mpg~horsepower,data=Auto)
+summary(Relation)
+```
+##i. Is there a relationship between the predictor and the response?
+Ans:The p-value corresponding to F-statistic is very low(<0.001).So it indicates that there is a relationship between response amd predictor.
+
+##ii. How strong is the relationship between the predictor and the response?
+Ans:The R-squared value is 0.6059, which means 60.59% of the variation in mpg can be explained using horsepower data.
+
+##iii. Is the relationship between the predictor and the response positive or negative?
+Ans: The relationship between mpg and horsepower is negative, as co-efficient of horsepower is negative i.e. -0.157845. It shows that with increase in horsepower, there is reduction in mpg.
+
+##iv. How to interpret the estimate of the slope?
+Ans: Coefficient of Horsepower is -0.157845, so with increase of 100 in horsepower, mpg will decrease by 15.7845.
+
+##v. What is the predicted mpg associated with a horsepower of 98? What are the associated 95% confidence and prediction intervals?
+
+```{r}
+predict(Relation, data.frame(horsepower=98),interval="confidence")
+
+```
+
+```{r}
+predict(Relation, data.frame(horsepower=98), interval="prediction")
+```
+
+##(b) Plot the response and the predictor. Display the least squares regression line in the plot.
+```{r}
+plot(Auto$horsepower,Auto$mpg,main="plot of mpg vs horsepower",xlab="horsepower",ylab="mpg",col="red")
+abline(Relation,col="Blue")
+```
+
+
+##(c) Produce the diagnostic plots of the least squares regression fit. Comment on each plot.
+
+```{r}
+par(mfrow=c(2,2))
+plot(Relation)
+```
+
+Comment 1: From the plot of residuals vs Fitted values, The non-linearity relationship is present in the data.
+Comment2: From the Residuals vs Leverage plot, there are many high leverage points present in the data and also the the outliers.
+Comment3:Normal Q-Q Plot: From the Normal Q-Q plot, it is a fairly straight line, so both set of quantiles is come from normal distribution.
+comment4:Scale-location plot:From scale-location plot, residuals are spread randomly.
+
+
+
+##(d) Try a few different transformations of the predictor, such as log(𝑋) , √𝑋, 𝑋2, and repeat (a)-(c). Comment on your findings.
+
+
+Ans:
+1.log(x)
+##(a) Perform a simple linear regression with mpg as the response and log(horsepower) as the predictor.
+```{r}
+Relation2 <- lm(mpg~log(horsepower),data=Auto)
+summary(Relation2)
+```
+
+##i. Is there a relationship between the predictor and the response?
+Ans:The p-value corresponding to F-statistic is very low(<0.001).So it indicates that there is a relationship between response amd predictor.
+
+##ii. How strong is the relationship between the predictor and the response?
+Ans:The R-squared value is 0.6683, which means 66.83% of the variation in mpg can be explained using horsepower data.
+
+##iii. Is the relationship between the predictor and the response positive or negative?
+Ans: The relationship between mpg and horsepower is negative, as co-efficient of log(horsepower )is negative i.e. -18.5822. It shows that with increase in horsepower, there is reduction in mpg.
+
+##iv. How to interpret the estimate of the slope?
+Ans: Coefficient of log(Horsepower) is -18.5822, so with increase of 1 in log(horsepower), mpg will decrease by 18.5822.
+
+##v. What is the predicted mpg associated with a horsepower of 98? What are the associated 95% confidence and prediction intervals?
+```{r}
+predict(Relation2, data.frame(horsepower=98),interval="confidence")
+```
+
+```{r}
+predict(Relation2, data.frame(horsepower=98), interval="prediction")
+```
+
+##(b) Plot the response and the predictor. Display the least squares regression line in the plot.
+
+
+```{r}
+plot(log(Auto$horsepower),Auto$mpg,main="plot of mpg vs horsepower",xlab="log(horsepower)",ylab="mpg",col="red")
+abline(Relation2,col="Blue")
+```
+
+
+##(c) Produce the diagnostic plots of the least squares regression fit. Comment on each plot.
+Ans:
+```{r}
+par(mfrow=c(2,2))
+plot(Relation2)
+```
+
+Comment1:in residual vs fitted plot, wih log of horsepower, line is fairly straight, so it justifies non-linearity.
+Comment2:in residual vs leverage plot,From the Residuals vs Leverage plot, there are many high leverage points present in the data and also the the outliers.
+Comment3:Normal Q-Q Plot: From the Normal Q-Q plot, it is a fairly straight line, so both set of quantiles is come from normal distribution.
+comment4:Scale-location plot:From scale-location plot, residuals are spread randomly.
+
+2.sqrt(x)
+##(a) Perform a simple linear regression with mpg as the response and sqrt(horsepower) as the predictor.
+```{r}
+Relation3 <- lm(mpg~sqrt(horsepower),data=Auto)
+summary(Relation3)
+```
+##i. Is there a relationship between the predictor and the response?
+Ans:The p-value corresponding to F-statistic is very low(<0.001).So it indicates that there is a relationship between response amd predictor.
+
+##ii. How strong is the relationship between the predictor and the response?
+Ans:The R-squared value is 0.6437, which means 64.37% of the variation in mpg can be explained using horsepower data.
+
+##iii. Is the relationship between the predictor and the response positive or negative?
+Ans: The relationship between mpg and horsepower is negative, as co-efficient of log(horsepower )is negative i.e. -3.503. It shows that with increase in squareroot of horsepower, there is reduction in mpg.
+
+##iv. How to interpret the estimate of the slope?
+Ans: Coefficient of sqrt(Horsepower) is -3.503, so with increase of 1 in sqrt(horsepower), mpg will decrease by 3.503.
+
+##v. What is the predicted mpg associated with a horsepower of 98? What are the associated 95% confidence and prediction intervals?
+```{r}
+predict(Relation3, data.frame(horsepower=98),interval="confidence")
+```
+
+```{r}
+predict(Relation3, data.frame(horsepower=98),interval="prediction")
+```
+
+##(b) Plot the response and the predictor. Display the least squares regression line in the plot.
+```{r}
+
+plot(sqrt(Auto$horsepower),Auto$mpg,main="plot of mpg vs horsepower",xlab="sqrt(horsepower)",ylab="mpg",col="red")
+abline(Relation3,col="Blue")
+
+```
+##(c) Produce the diagnostic plots of the least squares regression fit. Comment on each plot.
+
+```{r}
+par(mfrow=c(2,2))
+plot(Relation3)
+```
+
+
+Comment1:in residual vs fitted plot, wih log of horsepower, line is fairly straight, so it justifies non-linearity.
+Comment2:in residual vs leverage plot,From the Residuals vs Leverage plot, there are many high leverage points present in the data and also the the outliers.
+Comment3:Normal Q-Q Plot: From the Normal Q-Q plot, it is a fairly straight line, so both set of quantiles is come from normal distribution.
+comment4:Scale-location plot:From scale-location plot, residuals are spread randomly.
+
+3.square(x)
+##(a) Perform a simple linear regression with mpg as the response and square(horsepower) as the predictor.
+Ans:
+```{r}
+Relation4 <- lm(mpg~(horsepower)^2,data=Auto)
+summary(Relation4)
+```
+##i. Is there a relationship between the predictor and the response?
+Ans:The p-value corresponding to F-statistic is very low(<0.001).So it indicates that there is a relationship between response amd predictor.
+
+##ii. How strong is the relationship between the predictor and the response?
+Ans:The R-squared value is 0.6059, which means 60.59% of the variation in mpg can be explained using horsepower data.
+
+##iii. Is the relationship between the predictor and the response positive or negative?
+Ans: The relationship between mpg and horsepower is negative, as co-efficient of horsepower is negative i.e. -0.157845. It shows that with increase in horsepower, there is reduction in mpg.
+
+##iv. How to interpret the estimate of the slope?
+Ans: Coefficient of Horsepower is -0.157845, so with increase of 100 in horsepower, mpg will decrease by 15.7845.
+
+##v. What is the predicted mpg associated with a horsepower of 98? What are the associated 95% confidence and prediction intervals?
+
+```{r}
+predict(Relation4, data.frame(horsepower=98),interval="confidence")
+```
+
+
+```{r}
+predict(Relation4, data.frame(horsepower=98),interval="prediction")
+```
+
+##(b) Plot the response and the predictor. Display the least squares regression line in the plot.
+```{r}
+plot((Auto$horsepower)^2,Auto$mpg,main="plot of mpg vs horsepower",xlab="square(horsepower)",ylab="mpg",col="red")
+abline(Relation4,col="Blue")
+```
+
+##(c) Produce the diagnostic plots of the least squares regression fit. Comment on each plot.
+```{r}
+par(mfrow=c(2,2))
+plot(Relation4)
+```
+Ans:
+Comment 1: From the plot of residuals vs Fitted values, The non-linearity relationship is present in the data.
+Comment2: From the Residuals vs Leverage plot, there are many high leverage points present in the data and also the the outliers.
+Comment3:Normal Q-Q Plot: From the Normal Q-Q plot, it is a fairly straight line, so both set of quantiles is come from normal distribution.
+comment4:Scale-location plot:From scale-location plot, residuals are spread randomly.
+
+
+
+
+#Problem2
+Use the Auto data set to answer the following questions:
+(a) Produce a scatterplot matrix which includes all of the variables in the data set. Which predictors
+appear to have an association with the response?
+```{r}
+pairs(Auto)
+```
+
+
+Association between response and predictor:
+All the predictors are associated with reponse except horsepower and acceleration.
+
+##(b) Compute the matrix of correlations between the variables (using the function cor()). You will
+need to exclude the name variable, which is qualitative.
+Ans:
+```{r}
+names(Auto)
+```
+
+```{r}
+cor(Auto[1:8])
+```
+
+
+##(c) Perform a multiple linear regression with mpg as the response and all other variables except name as the predictors.
+```{r}
+relation5<- lm(mpg~.-name,data=Auto)
+summary(relation5)
+```
+
+##i. Is there a relationship between the predictors and the response?
+Ans: The p-value related to the given F-statitstic is very low(<0.01), So there is relationship between mpg and other predictors.
+
+##ii. Which predictors have a statistically significant relationship to the response?
+Ans:All the predictors have significant relationship with the response except the cylinders, horsepower and acceleration, as their p-value related to t-statistics are fairly high.
+
+##iii. What does the coefficient for the year variable suggest?
+Ans: When all other predictors are kept constant, then with increase in 1 year of car, its mpg will increase ny 0.750773. Hence there is a positive relationship.
+
+##(d) Produce diagnostic plots of the linear regression fit. Comment on each plot.
+Ans:
+```{r}
+par(mfrow=c(2,2))
+plot(relation5)
+```
+Comment 1: From the plot of residuals vs Fitted values,as red line is fairly straight, linearity relationship is present in the data.
+Comment2: From the Residuals vs Leverage plot, there are many high leverage points present in the data and also the the outliers.
+Comment3:Normal Q-Q Plot: From the Normal Q-Q plot, it is a fairly straight line, so both set of quantiles is come from normal distribution.
+comment4:Scale-location plot:From scale-location plot, residuals are spread randomly.
+
+##(e) Is there serious collinearity problem in the model? Which predictors are collinear?
+
+```{r}
+car::vif(relation5)
+```
+vif value of cylinders, displacement,horsepower,weight,acceleration is high, hece these predictors are collinear.
+
+
+
+
+#Problem3
+Use the Carseats data set to answer the following questions:
+
+#(a) Fit a multiple regression model to predict Sales using Price, Urban, and US.
+```{r}
+data(Carseats)
+relation6 <- lm(Sales~Price+Urban+US,data=Carseats)
+summary(relation6)
+```
+
+##(b) Provide an interpretation of each coefficient in the model (note: some of the variables are qualitative).
+Ans:
+1.Price:With average increase in price by $1, there is decrease of 54.459(average)units of sales.
+2.Urban:Keeping the other predictors constant, sales in urban area are less than rural area by 21.916 units.
+3.US:keeping the other predictors constant , sales in US are more than Non-USstores by 1200.573(average)units.
+
+##(c) Write out the model in equation form.
+Ans.
+    Sales= 13.043469+ (-0.054459) X Price + (-0.021916) X Urban + (1.200573) X US + e
+    where, e=error.
+    
+##(d) For which of the predictors can you reject the null hypothesis 𝐻 : 𝛽 = 0 ?
+Ans: Null Hypothesis can be rejected for "Price" and "US" variables, as p-value for these predictors is fairly low.
+
+##(e) On the basis of your answer to the previous question, fit a smaller model that only uses the predictors for which there is evidence of association with the response.
+Ans:
+```{r}
+data(Carseats)
+relation7 <- lm(Sales~Price+US,data=Carseats)
+summary(relation7)
+```
+
+##(f) How well do the models in (a) and (e) fit the data?
+Ans:
+The R^2 value for new model (e) is better than older model(a). more variation is explained in the newer model.
+
+##(g) Is there evidence of outliers or high leverage observations in the model from (e)?
+Ans:
+```{r}
+par(mfrow=c(2,2))
+plot(relation7)
+```
+
+there are some outliers are present in the model, because in residual vs leverage plot, many points are outside of -2 to 2.
+There are leverage points are also present.
+
+
+
+

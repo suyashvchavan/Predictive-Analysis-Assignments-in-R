@@ -1,0 +1,259 @@
+---
+title: "Assignment-4"
+author: "Suyashkumar Chavan(228001537)"
+date: "10/19/2018"
+output:
+  word_document: default
+  pdf_document: default
+---
+
+#Question 1: This question should be answered using the Default data set. In Chapter 4 on classification, we used logistic regression to predict the probability of default using income and balance. Now we will estimate the test error of this logistic regression model using the validation set approach. Do not forget to set a random seed before beginning your analysis.
+
+##(a) Fit a logistic regression model that predicts default using income and balance.
+Ans:
+```{r}
+library(ISLR)
+data(Default)
+set.seed(1)
+logisticreg1 <- glm(default ~ income + balance,data=Default,family="binomial")
+summary(logisticreg1)
+```
+##(b) Using the validation set approach, estimate the test error of this model. You need to perform
+##    the following steps:
+## i. Split the sample set into a training set and a validation set.
+##ii. Fit a logistic regression model using only the training data set.
+##iii. Obtain a prediction of default status for each individual in the validation set using a
+##    threshold of 0.5.
+##iv. Compute the validation set error, which is the fraction of the observations in the
+##    validation set that are misclassified.
+
+Ans:
+steps i & ii:
+```{r}
+dim1 <- dim(Default)[1]
+dim2 <- dim1/2
+training <- sample(dim1,dim2)
+logisticreg2 <- glm(default ~ income + balance,data=Default,subset=training,family="binomial")
+summary(logisticreg2)
+```
+
+step iii:
+```{r}
+predict1 <- predict(logisticreg2,newdata=Default[-training,],type="response")
+pred.logreg1 <- rep("No",length(predict1))
+pred.logreg1[predict1 > 0.5] <- "Yes"
+
+```
+
+step iv:
+```{r}
+mean(pred.logreg1 !=Default[-training,]$default)
+```
+So the test error rate is 2.86% with validation set approach
+
+##(c) Repeat the process in (b) three times, using three different splits of the observations into a training set and a validation set. Comment on the results obtained.
+first:
+```{r}
+training1 <- sample(dim1,dim2)
+logisticreg2 <- glm(default ~ income + balance,data=Default,subset=training1,family="binomial")
+predict2 <- predict(logisticreg2,newdata=Default[-training1,],type="response")
+pred.logreg2 <- rep("No",length(predict2))
+pred.logreg2[predict2 > 0.5] <- "Yes"
+mean(pred.logreg2 !=Default[-training1,]$default)
+```
+
+second:
+```{r}
+training3 <- sample(dim1,dim2)
+logisticreg3 <- glm(default ~ income + balance,data=Default,subset=training3,family="binomial")
+predict3 <- predict(logisticreg3,newdata=Default[-training3,],type="response")
+pred.logreg3 <- rep("No",length(predict3))
+pred.logreg3[predict3 > 0.5] <- "Yes"
+mean(pred.logreg3 !=Default[-training3,]$default)
+```
+third:
+```{r}
+training4 <- sample(dim1,dim2)
+logisticreg4 <- glm(default ~ income + balance,data=Default,subset=training4,family="binomial")
+predict4 <- predict(logisticreg4,newdata=Default[-training4,],type="response")
+pred.logreg4 <- rep("No",length(predict4))
+pred.logreg4[predict4 > 0.5] <- "Yes"
+mean(pred.logreg4 !=Default[-training4,]$default)
+```
+
+By looking at these three results, it can be said that there is a variation in the error rate, which depends on the training data set and test data set.
+
+##(d) Consider another logistic regression model that predicts default using income, balance and student (qualitative). Estimate the test error for this model using the validation set approach. Does including the qualitative variable student lead to a reduction of test error rate?
+Ans:
+```{r}
+training5 <- sample(dim1,dim2)
+logisticreg5 <- glm(default ~ income + balance + student,data=Default,subset=training5,family="binomial")
+predict5 <- predict(logisticreg5,newdata=Default[-training5,],type="response")
+pred.logreg5 <- rep("No",length(predict5))
+pred.logreg5[predict5 > 0.5] <- "Yes"
+mean(pred.logreg5 !=Default[-training4,]$default)
+```
+
+No. there is no reduction in validation set estimate of test error rate after adding student for prediction.
+
+
+#Qustion 2:This question requires performing cross validation on a simulated data set.
+
+##(a) Generate a simulated data set as follows:
+##set.seed(1) x=rnorm(200) y=x-2*x^2+rnorm(200)
+##In this data set, what is 𝑛 and what is 𝑝? Write out the model used to generate the data in equation ##form (i.e., the true model of the data).
+
+Ans: 
+```{r}
+set.seed(1)
+x <- rnorm(200)
+y <- x - 2*x^2+rnorm(200) 
+```
+
+Here n=200 and p=2. the equation of the model is Y= X - X^2 + e,
+where e = error.
+
+##(b) Create a scatter plot of 𝑌 vs 𝑋. Comment on what you find.
+```{r}
+plot(x,y)
+```
+
+From the plot it is clear that relationship is not linear i.e.curved relationship.
+
+##(c) Consider the following four models for the data set:
+i. Y = B + B1X +e
+ii.Y = B + B1X + B2X^2 + e
+iii. Y =B + B1X + B2X^2 + B3X^3 + e
+iv. Y =B + B1X + B2X^2 + B3X^3 + B4X^4 + e
+Compute the LOOCV errors that result from fitting these models.
+i. Y = B +B1X + e
+```{r}
+library(boot)
+set.seed(1)
+data1 <- data.frame(x,y)
+glm1 <- glm(y ~ x)
+cv.glm(data1,glm1)$delta[1]
+
+```
+
+ii.Y = B + B1X + B2X^2 + e
+```{r}
+set.seed(1)
+glm2 <- glm(y ~ poly(x,2))
+cv.glm(data1,glm2)$delta[1]
+```
+iii. Y =B + B1X + B2X^2 + B3X^3 + e
+```{r}
+glm3 <- glm(y ~ poly(x,3))
+cv.glm(data1,glm3)$delta[1]
+```
+
+iv. Y =B + B1X + B2X^2 + B3X^3 + B4X^4 + e
+```{r}
+set.seed(1)
+glm4 <- glm(y ~ poly(x,4))
+cv.glm(data1,glm4)$delta[1]
+```
+
+##(d) Repeat (c) using another random seed, and report your results. Are your results the same as what you got in (c)? Why?
+Ans:
+i. Y = B +B1X + e
+```{r}
+set.seed(3)
+glm11 <- glm(y ~ x)
+cv.glm(data1,glm11)$delta[1]
+```
+
+ii.Y = B + B1X + B2X^2 + e
+```{r}
+set.seed(3)
+glm12 <- glm(y ~ poly(x,2))
+cv.glm(data1,glm12)$delta[1]
+```
+
+iii. Y =B + B1X + B2X^2 + B3X^3 + e
+```{r}
+set.seed(3)
+glm13 <- glm(y ~ poly(x,3))
+cv.glm(data1,glm13)$delta[1]
+```
+
+iv. Y =B + B1X + B2X^2 + B3X^3 + B4X^4 + e
+```{r}
+set.seed(3)
+glm14 <- glm(y ~ poly(x,4))
+cv.glm(data1,glm14)$delta[1]
+```
+
+Since LOOCV method uses n-folds of given observation data, the results obtained in(d) are same as the result obtained in(c).
+
+##(e) Which of the models in (c) had the smallest LOOCV error? Is this what you expected? Explain your answer.
+Ans:
+The model with 4-degree polynomial equation has lowest LOOCV error i.e. glm4 model. As we can see from the scatterplot that relation between "x"and "y"is quadratic, So glm4 model is not expected to give minimum LOOCV.
+
+##(f) Now we use 5-fold CV for the model selection. Compute the CV errors that result from fitting the four models. Which model has the smallest CV error? Are the results consistent with LOOCV?
+Ans:
+i. Y = B +B1X + e
+```{r}
+set.seed(1)
+glm21<-glm(y ~x)
+cv.glm(data1,glm21,K=5)$delta[1]
+```
+
+ii.Y = B + B1X + B2X^2 + e
+```{r}
+set.seed(1)
+glm22 <- glm(y ~ poly(x,2))
+cv.glm(data1,glm22,K=5)$delta[1]
+```
+
+iii. Y =B + B1X + B2X^2 + B3X^3 + e
+```{r}
+set.seed(1)
+glm23 <- glm(y ~ poly(x,3))
+cv.glm(data1,glm23,K=5)$delta[1]
+```
+
+iv. Y =B + B1X + B2X^2 + B3X^3 + B4X^4 + e
+```{r}
+set.seed(1)
+glm24 <- glm(y ~ poly(x,4))
+cv.glm(data1,glm24,K=5)$delta[1]
+```
+
+Ans: The model glm24 has smallest CV error.i.e. model with 4 degree polynomial.
+
+##(g) Repeat (f) using 10-fold CV. Are the results the same as 5-fold CV?
+Ans:
+i. Y = B +B1X + e
+```{r}
+set.seed(1)
+glm31<-glm(y ~x)
+cv.glm(data1,glm31,K=10)$delta[1]
+```
+
+ii.Y = B + B1X + B2X^2 + e
+```{r}
+set.seed(1)
+glm32 <- glm(y ~ poly(x,2))
+cv.glm(data1,glm32,K=10)$delta[1]
+```
+
+iii. Y =B + B1X + B2X^2 + B3X^3 + e
+```{r}
+set.seed(1)
+glm33 <- glm(y ~ poly(x,3))
+cv.glm(data1,glm33,K=10)$delta[1]
+```
+
+iv. Y =B + B1X + B2X^2 + B3X^3 + B4X^4 + e
+```{r}
+set.seed(1)
+glm34 <- glm(y ~ poly(x,4))
+cv.glm(data1,glm34,K=10)$delta[1]
+```
+
+The CV error rate has changed for each model, but still glm34 model has lowest error rate i.e. model with 4 degree polynomial.
+
+
+

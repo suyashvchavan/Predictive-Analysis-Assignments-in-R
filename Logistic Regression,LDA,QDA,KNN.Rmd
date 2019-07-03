@@ -1,0 +1,460 @@
+---
+title: "Assignment 3-çlassification"
+author: "Suyashkumar Chavan(228001537)"
+date: "10/12/2018"
+output: pdf_document
+---
+#Question-1
+This question should be answered using the Weekly data set, which is part of the ISLR package. This data is similar in nature to the Smarket data from this chapter’s lab, except that it contains 1,089 weekly returns for 21 years, from the beginning of 1990 to the end of 2010.
+
+##(a) Produce some numerical and graphical summaries of the Weekly data. Do there appear to be any patterns?
+Ans:
+
+```{r}
+library(ISLR)
+data(Weekly)
+summary(Weekly)
+```
+
+```{r}
+names(Weekly)
+
+```
+
+```{r}
+cor(Weekly[,-9])
+```
+```{r}
+pairs(Weekly)
+```
+From above plots, it looks like other than Year and Volume, no other variables are related.Volume increase as increase in year from the plot we can infer that.
+
+##(b) Use the full data set to perform a logistic regression with Direction as the response and the five lag variables plus Volume as predictors. Use the summary function to print the results. Do any of the predictors appear to be statistically significant? If so, which ones?
+```{r}
+logistic.regression <- glm(Direction ~ Lag1 + Lag2 + Lag3 + Lag4 +Lag5 + Volume 
+                           ,data=Weekly,family=binomial)
+summary(logistic.regression)
+```
+Only Lag2 predictor is significant, as it is the only predictor with p-value less than 0.05.
+
+##(c) Compute the confusion matrix and performance measures (accuracy, error rate, sensitivity, specificity). Explain what the confusion matrix is telling you about the types of mistakes made by logistic regression. Does the error rate represent the performance of logistic regression in prediction? (hint: is it training error rate or test error rate?)
+Ans:
+
+```{r}
+a <- predict(logistic.regression,type="response")
+b <- ifelse(a > 0.5,"Up","Down")
+c <- table( b,Weekly$Direction)
+c
+```
+```{r}
+accuracy <- (c["Down","Down"] + c["Up","Up"])/nrow(Weekly) 
+error_rate <- 1- accuracy
+sensitivity <- c["Up","Up"]/(c["Down","Up"]+ c["Up","Up"])
+specificity <- c["Down","Down"]/(c["Down","Down"]+ c["Up","Down"])
+
+performance_measures <- data.frame(measures= c("accuracy","error_rate","sensitivity","specificity")
+                                   , values= c(accuracy,error_rate,sensitivity,specificity))
+performance_measures
+
+
+```
+The model predict well for Up Direction than Down Direction.The error rate is 43.89% .When market goes up, the model predicted it 92.06% of the time right, But when it goes down it only predicted it 11.15% of the time right. This logistic regression does not represent performance of logistic regression as it is done on training data. for performance evaluation we need test data.
+
+##(d) Now fit the logistic regression model using a training data period from 1990 to 2008, with Lag2 as the only predictor. Compute the confusion matrix and performance measures (accuracy, error rate, sensitivity, specificity) for the held out data (that is, the data from 2009 and 2010).
+
+Ans:
+```{r}
+library(ISLR)
+data(Weekly)
+training <- c(Weekly$Year < 2009)
+Weekly.2010 <- Weekly[!training,]
+Direction.2010 <- Weekly$Direction[!training]
+logistic.regression2 <- glm(Direction ~ Lag2, data=Weekly, family = binomial, subset=training)
+summary(logistic.regression2)
+```
+
+```{r}
+d <- predict(logistic.regression2,newdata=Weekly.2010,type="response")
+e <- ifelse(d > 0.5,"Up","Down")
+f <- table(e,Direction.2010)
+f
+```
+
+```{r}
+
+```
+
+```{r}
+accuracy <- (f["Down","Down"] + f["Up","Up"])/nrow(Weekly.2010) 
+error_rate <- 1- accuracy
+sensitivity <- f["Up","Up"]/(f["Down","Up"]+ f["Up","Up"])
+specificity <- f["Down","Down"]/(f["Down","Down"]+ f["Up","Down"])
+
+performance_measures <- data.frame(measures= c("accuracy","error_rate","sensitivity","specificity")
+, values= c(accuracy,error_rate,sensitivity,specificity))
+performance_measures
+```
+
+##(e) Repeat (d) using LDA.
+Ans: 
+```{r}
+
+library(MASS)
+data(Weekly)
+training <- c(Weekly$Year < 2009)
+Weekly.2010 <- Weekly[!training,]
+Direction.2010 <- Weekly$Direction[!training]
+ld <- lda(Direction ~ Lag2, data=Weekly, subset=training)
+ld
+```
+```{r}
+predict.lda <- predict(ld,Weekly.2010)
+g <- table(predict.lda$class, Direction.2010)
+g
+```
+```{r}
+accuracy <- (g["Down","Down"] + g["Up","Up"])/nrow(Weekly.2010) 
+error_rate <- 1- accuracy
+sensitivity <- g["Up","Up"]/(g["Down","Up"]+ g["Up","Up"])
+specificity <- g["Down","Down"]/(g["Down","Down"]+ g["Up","Down"])
+
+performance_measures <- data.frame(measures= c("accuracy","error_rate","sensitivity","specificity")
+                                   , values= c(accuracy,error_rate,sensitivity,specificity))
+performance_measures
+```
+
+##(f) Repeat (d) using QDA.
+Ans:
+```{r}
+QDA <- qda(Direction ~ Lag2, data=Weekly, subset=training)
+QDA
+```
+```{r}
+predict.qda <- predict(QDA,Weekly.2010)
+h <- table(predict.qda$class, Direction.2010)
+h
+```
+```{r}
+accuracy <- (h["Down","Down"] + h["Up","Up"])/nrow(Weekly.2010) 
+error_rate <- 1- accuracy
+sensitivity <- h["Up","Up"]/(h["Down","Up"]+ h["Up","Up"])
+specificity <- h["Down","Down"]/(h["Down","Down"]+ h["Up","Down"])
+
+performance_measures <- data.frame(measures= c("accuracy","error_rate","sensitivity","specificity")
+                                   , values= c(accuracy,error_rate,sensitivity,specificity))
+performance_measures
+```
+
+##(g) Repeat (d) using KNN with K = 1.
+Ans:
+```{r}
+library(class)
+train.data <- as.matrix(Weekly$Lag2[training])
+test.data <- as.matrix(Weekly$Lag2[!training])
+train.direction<- Weekly$Direction[training]
+set.seed(1)
+knn.prediction <- knn(train.data,test.data,train.direction, k=1)
+i <-table(knn.prediction,Direction.2010)
+i
+```
+```{r}
+
+```
+
+##(h) Which of these methods appears to provide the best results on this data?
+Ans: from above all these methods, Logistic Regression and LDA provided best results as their accuracy was 62.5%(most among the methods).
+```{r}
+accuracy <- (i["Down","Down"] + i["Up","Up"])/nrow(Weekly.2010) 
+error_rate <- 1- accuracy
+sensitivity <- i["Up","Up"]/(i["Down","Up"]+ i["Up","Up"])
+specificity <- i["Down","Down"]/(i["Down","Down"]+ i["Up","Down"])
+
+performance_measures <- data.frame(measures= c("accuracy","error_rate","sensitivity","specificity")
+                                   , values= c(accuracy,error_rate,sensitivity,specificity))
+performance_measures
+```
+
+##(i) Experiment with different combinations of predictors, including possible transformations and interactions, for each of the methods. Report the variables, method, and associated confusion matrix that appears to provide the best results on the held out data. Note that you should also experiment with values for K in the KNN classifiers.
+Ans: 
+##Logistic regression with Lag4 interaction with lag3
+Only this interaction perform better,when checked with ROC curve.
+```{r}
+logistic.regression3 <- glm(Direction ~ Lag4 : Lag3,data=Weekly,family=binomial)
+m <- predict(logistic.regression3,Weekly.2010,type="response")
+n <- ifelse(m > 0.5,"Up","Down")
+p <- table( n,Direction.2010)
+p
+```
+```{r}
+accuracy <- (p["Down","Down"] + p["Up","Up"])/nrow(Weekly.2010) 
+error_rate <- 1- accuracy
+sensitivity <- p["Up","Up"]/(p["Down","Up"]+ p["Up","Up"])
+specificity <- p["Down","Down"]/(p["Down","Down"]+ p["Up","Down"])
+
+performance_measures <- data.frame(measures= c("accuracy","error_rate","sensitivity","specificity")
+                                   , values= c(accuracy,error_rate,sensitivity,specificity))
+performance_measures
+```
+
+##LDA with log(abs(Lag1))
+Only log of Lag1 perform better,when checked with ROC curve.
+```{r}
+lda1 <- lda(Direction ~ log(abs(Lag1)), data=Weekly, subset=training)
+r <- predict(lda1,Weekly.2010)
+s <- table(r$class, Direction.2010)
+s
+```
+```{r}
+accuracy <- (s["Down","Down"] + s["Up","Up"])/nrow(Weekly.2010) 
+error_rate <- 1- accuracy
+sensitivity <- s["Up","Up"]/(s["Down","Up"]+ s["Up","Up"])
+specificity <- s["Down","Down"]/(s["Down","Down"]+ s["Up","Down"])
+
+performance_measures <- data.frame(measures= c("accuracy","error_rate","sensitivity","specificity")
+                                   , values= c(accuracy,error_rate,sensitivity,specificity))
+performance_measures
+```
+
+##QDA with sqrt(abs(Lag5))
+
+```{r}
+QDA2 <- qda(Direction ~ sqrt(abs(Lag5)), data=Weekly, subset=training)
+predict.qda2 <- predict(QDA2,Weekly.2010)
+t <- table(predict.qda2$class, Direction.2010)
+t
+```
+```{r}
+accuracy <- (t["Down","Down"] + t["Up","Up"])/nrow(Weekly.2010) 
+error_rate <- 1- accuracy
+sensitivity <- t["Up","Up"]/(t["Down","Up"]+ t["Up","Up"])
+specificity <- t["Down","Down"]/(t["Down","Down"]+ t["Up","Down"])
+
+performance_measures <- data.frame(measures= c("accuracy","error_rate","sensitivity","specificity")
+                                   , values= c(accuracy,error_rate,sensitivity,specificity))
+performance_measures
+```
+
+#KNN with K=100
+```{r}
+knn.prediction <- knn(train.data,test.data,train.direction, k=100)
+o <-table(knn.prediction,Direction.2010)
+o
+```
+
+```{r}
+accuracy <- (o["Down","Down"] + o["Up","Up"])/nrow(Weekly.2010) 
+error_rate <- 1- accuracy
+sensitivity <- o["Up","Up"]/(o["Down","Up"]+ o["Up","Up"])
+specificity <- o["Down","Down"]/(o["Down","Down"]+ o["Up","Down"])
+
+performance_measures <- data.frame(measures= c("accuracy","error_rate","sensitivity","specificity")
+                                   , values= c(accuracy,error_rate,sensitivity,specificity))
+performance_measures
+```
+
+#Question2: Perform ROC analysis and present the results for logistic regression and LDA used for the best model chosen in Question 1(i).
+##ROC-curve for Logistic Regression
+```{r}
+logistic.regression3 <- glm(Direction ~ Lag4 : Lag3,data=Weekly,family=binomial)
+LR.pred <- predict(logistic.regression3,newdata=Weekly.2010,scale=1,type="response")
+
+roc.curve <- function(s,print=FALSE){
+Ps <- (LR.pred>s)*1
+FP <- sum((Ps==1)*(Weekly.2010$Direction=="Down"))/sum(Weekly.2010$Direction=="Down") 
+TP <- sum((Ps==1)*(Weekly.2010$Direction=="Up"))/sum(Weekly.2010$Direction=="Up") 
+if(print==TRUE){ print(table(Observed=Weekly.2010$Direction,Predicted=Ps))
+}
+vect <-c(FP,TP)
+names(vect)<- c("FPR","TPR") 
+return(vect)
+}
+threshold=0.5 
+roc.curve(threshold,print=TRUE)
+
+ROC.curve <-Vectorize(roc.curve)
+M.ROC <-ROC.curve(seq(0,1,by=0.01))
+plot(M.ROC[1,],M.ROC[2,],col="grey",lwd=2,type="l",xlab="False positive rate"
+     ,ylab="True positive rate")
+abline(a=0,b=1)
+
+
+```
+
+##ROC curve for LDA
+```{r}
+lda1 <- lda(Direction ~ log(abs(Lag1)), data=Weekly, subset=training)
+lda.pred <- predict(lda1,Weekly.2010)
+LDA.predp <- lda.pred$posterior[,2]
+roc.curve1 <- function(s,print=FALSE){
+Ps <- (LDA.predp>s)*1
+FP <- sum((Ps==1)*(Weekly.2010$Direction=="Down"))/sum(Weekly.2010$Direction=="Down") 
+TP <- sum((Ps==1)*(Weekly.2010$Direction=="Up"))/sum(Weekly.2010$Direction=="Up") 
+if(print==TRUE){ 
+print(table(Observed=Weekly.2010$Direction,Predicted=Ps))
+}
+vect <- c(FP,TP)
+names(vect) <- c("FPR","TPR")
+return(vect)
+}
+threshold=0.5 
+roc.curve1(threshold,print=TRUE)
+
+ROC.curve1 <- Vectorize(roc.curve1)
+M.ROC <- ROC.curve1(seq(0,1,by=0.01))
+plot(M.ROC[1,],M.ROC[2,],col="grey",lwd=2,type="l",
+     xlab="False positive rate",ylab="True positive rate")
+abline(a=0,b=1)
+```
+
+#Question3: In this problem, you will develop a model to predict whether a given car gets high or low gas mileage based on the Auto data set.
+ 
+##(a) Create a binary variable, mpg01, that contains a 1 if mpg contains a value above its median, and a 0 if mpg contains a value below its median. You can compute the median using the median()
+```{r}
+library(ISLR)
+data(Auto)
+
+Median <- median(Auto$mpg)
+Median
+mpg01 <- ifelse(Auto$mpg > Median,1,0)
+Auto <-data.frame(Auto,mpg01)
+head(Auto,n=25)
+```
+
+##(b) Explore the data graphically in order to investigate the association between mpg01 and the other features. Which of the other features seem most likely to be useful in predicting mpg01? Scatterplots and Boxplots may be useful tools to answer this question. Describe your findings.
+```{r}
+names(Auto)
+```
+
+```{r}
+cor(Auto[,-9])
+```
+
+```{r}
+pairs(Auto)
+```
+```{r}
+boxplot(acceleration ~ mpg01,data=Auto,main="Acceleration vs mpg01")
+```
+
+```{r}
+boxplot(weight ~ mpg01,data=Auto,main="Weight vs mpg01")
+```
+```{r}
+boxplot(horsepower ~ mpg01,data=Auto,main="horsepower vs mpg01")
+```
+
+```{r}
+boxplot(displacement ~ mpg01,data=Auto,main="displacement vs mpg01")
+```
+
+From the Scatterplot and Boxplots we can conclude that there is some relationship between mpg01 and displacement, weight, horsepower and cylinder
+
+#(c) Split the data into a training set and a test set.
+Ans:
+```{r}
+filter <- Auto$year>76
+filter2 <- Auto$year < 77
+training.data <- Auto[filter,]
+test.data <- Auto[filter2,]
+head(training.data,n=10)
+head(test.data,n=10)
+test.mpg01 <- mpg01[filter2]
+head(test.mpg01,n=10)
+```
+
+##(d) Perform LDA on the training data in order to predict mpg01 using the variables that seemed
+##most associated with mpg01 in (b). What is the test error of the model obtained?
+
+```{r}
+LDAfit <- lda(mpg01 ~ horsepower + cylinders + displacement+ weight, data=training.data)
+LDAfit
+```
+
+```{r}
+predict.LDA <- predict(LDAfit, test.data)$class
+z <- table(predict.LDA,test.mpg01)
+z
+```
+```{r}
+accuracy <- (z["0","0"] + z["1","1"])/length(test.mpg01) 
+error_rate <- 1- accuracy
+performance_measures <- data.frame(measures= c("accuracy","error_rate"),
+                                   values= c(accuracy,error_rate))
+performance_measures
+```
+
+##(e) Perform QDA on the training data in order to predict mpg01 using the variables that seemed
+##most associated with mpg01 in (b). What is the test error of the model obtained?
+
+```{r}
+QDAfit <- qda(mpg01~horsepower+cylinders+displacement+weight,data=training.data)
+QDAfit
+```
+```{r}
+predict.QDA <- predict(QDAfit,test.data)$class
+zz <- table(predict.QDA,test.mpg01)
+zz
+```
+```{r}
+accuracy <- (zz["0","0"] + zz["1","1"])/length(test.mpg01) 
+error_rate <- 1- accuracy
+performance_measures <- data.frame(measures= c("accuracy","error_rate"), 
+                                   values= c(accuracy,error_rate))
+performance_measures
+```
+
+##(f) Perform logistic regression on the training data in order to predict mpg01 using the variables
+##that seemed most associated with mpg01 in (b). What is the test error of the model obtained?
+
+```{r}
+LOGfit <- glm(mpg01 ~ horsepower + cylinders + displacement + weight,
+              data = training.data,family=binomial)
+LOGfit
+```
+```{r}
+predict.LOG <- predict(LOGfit,test.data,type="response")
+loggg<- ifelse(predict.LOG >0.5,"1","0")
+zzz<- table(loggg,test.mpg01)
+zzz
+```
+```{r}
+accuracy <- (zzz["0","0"] + zzz["1","1"])/length(test.mpg01) 
+error_rate <- 1- accuracy
+performance_measures <- data.frame(measures= c("accuracy","error_rate"), 
+                                   values= c(accuracy,error_rate))
+performance_measures
+```
+
+##(g) Perform KNN on the training data, with several values of K, in order to predict mpg01. Use only the variables that seemed most associated with mpg01 in (b). What test errors do you obtain? Which value of K seems to perform the best on this data set?
+
+Ans:
+```{r}
+train.xx <-cbind(Auto$cylinders,Auto$weight,Auto$displacement, Auto$horsepower)[filter,]
+test.xx <- cbind(Auto$cylinders,Auto$weight,Auto$displacement, Auto$horsepower)[!filter,]
+train.mpg01 <- mpg01[filter]
+set.seed(1)
+predict.KNN <- knn(train.xx,test.xx,train.mpg01,k=10)
+xx<-table(predict.KNN,test.mpg01)
+
+xx
+
+```
+
+```{r}
+accuracy <- (xx["0","0"] + xx["1","1"])/length(test.mpg01) 
+error_rate <- 1- accuracy
+performance_measures <- data.frame(measures= c("accuracy","error_rate"), 
+                                   values= c(accuracy,error_rate))
+performance_measures
+
+
+```
+
+For k=10,11,12 error rate is lowest at 14.48.
+
+
+
+
+
+
+
